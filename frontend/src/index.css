@@ -1,0 +1,156 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+/* ── Global tokens ──────────────────────────────────────────────────────── */
+:root {
+  --bg-base:          #0D0F17;
+  --bg-glass:         rgba(13,15,23,0.82);
+  --bg-document:      #FAF8F4;
+  --border-glass:     rgba(255,255,255,0.09);
+  --border-glass-hover: rgba(255,255,255,0.18);
+  --text-primary:     #FFFFFF;
+  --text-muted:       rgba(255,255,255,0.42);
+  --text-dark:        #1A1A1A;
+  --status-driving:   #4ADE80;
+  --status-offduty:   #60A5FA;
+  --status-onduty:    #F59E0B;
+  --status-sleeper:   #94A3B8;
+
+  /* Legacy aliases */
+  --dark:             #0D0F17;
+  --dark-2:           #12151E;
+  --dark-3:           #1A1D2E;
+  --accent:           #E8EDF5;
+  --white:            #FFFFFF;
+  --bg:               #1A1D2E;
+  --border:           rgba(255,255,255,0.09);
+  --text:             #FFFFFF;
+  --text-on-dark:     #E8EDF5;
+  --text-muted-dark:  rgba(255,255,255,0.42);
+  --bg-mid:           #1A1D2E;
+  --bg-dark:          #0D0F17;
+}
+
+/* ── Reset ─────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100vh;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+#root { height: 100%; overflow: hidden; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, h4 { font-family: 'DM Sans', sans-serif; font-weight: 700; }
+
+/* ── Landing entrance animations ────────────────────────────────────────── */
+@keyframes fadeUpIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+@keyframes logCardIn {
+  from { opacity: 0; transform: rotate(6deg) translateY(24px); }
+  to   { opacity: 1; transform: rotate(6deg) translateY(0);    }
+}
+
+.land-in-1 { animation: fadeUpIn 500ms cubic-bezier(0.22,1,0.36,1) 0ms   both; }
+.land-in-2 { animation: fadeUpIn 500ms cubic-bezier(0.22,1,0.36,1) 80ms  both; }
+.land-in-3 { animation: fadeUpIn 500ms cubic-bezier(0.22,1,0.36,1) 160ms both; }
+.land-in-4 { animation: fadeUpIn 500ms cubic-bezier(0.22,1,0.36,1) 240ms both; }
+.land-in-card { animation: logCardIn 600ms cubic-bezier(0.22,1,0.36,1) 200ms both; }
+
+/* ── Page transitions ────────────────────────────────────────────────────── */
+@keyframes pageExitAnim {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-12px); }
+}
+@keyframes pageEnterAnim {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+.page-exit  { animation: pageExitAnim  300ms ease-in  forwards; pointer-events: none; }
+.page-enter { animation: pageEnterAnim 400ms ease-out forwards; }
+
+/* ── Marker bounce-in ─────────────────────────────────────────────────────── */
+@keyframes markerBounceIn {
+  from { transform: scale(0) translateY(-10px); opacity: 0; }
+  to   { transform: scale(1) translateY(0);     opacity: 1; }
+}
+
+/* ── Pill slide up ───────────────────────────────────────────────────────── */
+@keyframes pillSlideUp {
+  from { transform: translateX(-50%) translateY(20px); opacity: 0; }
+  to   { transform: translateX(-50%) translateY(0);    opacity: 1; }
+}
+.pill-enter { animation: pillSlideUp 400ms cubic-bezier(0.22,1,0.36,1) both; }
+
+/* ── Button spinner ──────────────────────────────────────────────────────── */
+@keyframes spin { to { transform: rotate(360deg); } }
+.btn-spinner {
+  display: inline-block;
+  width: 12px; height: 12px;
+  border: 1.5px solid rgba(13,15,23,0.25);
+  border-top-color: #0D0F17;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  vertical-align: middle;
+  margin-right: 7px;
+}
+
+/* ── Stat appear ─────────────────────────────────────────────────────────── */
+@keyframes statAppear {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.stat-appear { animation: statAppear 0.35s ease forwards; }
+
+/* ── Glass input fields ──────────────────────────────────────────────────── */
+.trip-input {
+  display: block;
+  width: 100%;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  color: #FFFFFF;
+  font-size: 14px;
+  font-family: 'DM Sans', sans-serif;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color 150ms, background 150ms, box-shadow 150ms;
+}
+.trip-input:focus {
+  border-color: rgba(255,255,255,0.32);
+  background: rgba(255,255,255,0.10);
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.06);
+}
+.trip-input::placeholder { color: rgba(255,255,255,0.2); }
+
+/* ── Log canvas wrap ─────────────────────────────────────────────────────── */
+.log-sheet-card {
+  /* Scale handled inline by LogSheetOverlay */
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 99px; }
+
+/* ── Print ───────────────────────────────────────────────────────────────── */
+@media print {
+  body > *:not(.print-target) { display: none !important; }
+  .log-sheet-card {
+    page-break-after: always;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    transform: none !important;
+    filter: none !important;
+  }
+}
