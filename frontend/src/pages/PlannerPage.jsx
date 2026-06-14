@@ -1,6 +1,50 @@
 import { useState, useEffect, useRef } from 'react'
 
 const API = import.meta.env.VITE_API_URL ?? ''
+
+// ── Route interpolation — places rest/fuel stops on the map ──────────────────
+
+function haversينeMiles(lat1, lon1, lat2, lon2) {
+  const R = 3958.8
+  const φ1 = lat1 * Math.PI / 180, φ2 = lat2 * Math.PI / 180
+  const Δφ = (lat2 - lat1) * Math.PI / 180
+  const Δλ = (lon2 - lon1) * Math.PI / 180
+  const a = Math.sin(Δφ/2) ** 2 + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) ** 2
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
+
+function interpolateOnRoute(coords, targetMiles) {
+  let acc = 0
+  for (let i = 0; i < coords.length - 1; i++) {
+    const [lon1, lat1] = coords[i], [lon2, lat2] = coords[i + 1]
+    const seg = haversينeMiles(lat1, lon1, lat2, lon2)
+    if (acc + seg >= targetMiles) {
+      const t = seg > 0 ? (targetMiles - acc) / seg : 0
+      return [lon1 + t * (lon2 - lon1), lat1 + t * (lat2 - lat1)]
+    }
+    acc += seg
+  }
+  return coords[coords.length - 1]
+}
+
+function enrichStops(stops, schedule, routeCoords) {
+  if (!stops || !routeCoords || routeCoords.length < 2) return stops
+  const allBlocks = (schedule?.days || []).flatMap(d => d.blocks || [])
+  return stops.map(stop => {
+    if (stop.lat != null) return stop
+    if (!stop.time) return stop
+    const stopMs = new Date(stop.time).getTime()
+    let drivingMiles = 0
+    for (const b of allBlocks) {
+      if (b.status !== 'driving') continue
+      const s = new Date(b.start).getTime(), e = new Date(b.end).getTime()
+      if (e <= stopMs) { drivingMiles += b.duration_hrs * 55 }
+      else if (s < stopMs) { drivingMiles += ((stopMs - s) / (e - s)) * b.duration_hrs * 55; break }
+    }
+    const [lon, lat] = interpolateOnRoute(routeCoords, drivingMiles)
+    return { ...stop, lat, lon }
+  })
+}
 import TripForm from '../components/TripForm'
 import MapView from '../components/MapView'
 import { MOCK_TRIP } from '../utils/mockData'
@@ -409,6 +453,14 @@ export default function PlannerPage() {
     ...display.schedule,
     total_miles_today: display.schedule.days.map(d => Math.round(d.total_driving_hrs * 55)),
   }
+  const enrichedRoute = {
+    ...display.route,
+    stops: enrichStops(
+      display.route?.stops,
+      display.schedule,
+      display.route?.geometry?.coordinates,
+    ),
+  }
 
   // Card position — CSS transitions handle the physical movement
   const cardPos = cardMoved
@@ -425,7 +477,7 @@ export default function PlannerPage() {
         {/* ── Map — always rendered beneath everything ───────────── */}
         <div style={{ position:'absolute', inset:0, zIndex:0 }}>
           <MapView
-            route={display.route}
+            route={enrichedRoute}
             animate={!!tripData}
             onMapReady={setMapInstance}
             isLoading={isLoading}
@@ -442,7 +494,7 @@ export default function PlannerPage() {
             { type:'rest',    color:'#94A3B8', label:'Rest Stop' },
             { type:'fuel',    color:'#F59E0B', label:'Fuel Stop' },
           ]
-          const presentTypes = new Set((display.route?.stops || []).map(s => s.type))
+          const presentTypes = new Set((enrichedRoute?.stops || []).map(s => s.type))
           const items = ALL_LEGEND.filter(i => presentTypes.has(i.type))
           if (!items.length) return null
           return (
